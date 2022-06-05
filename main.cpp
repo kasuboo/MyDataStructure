@@ -7,13 +7,9 @@
 #define width 800 //窗口大小
 #define height 600 
 int rec1[] = { 20, 100,480,580 }; //绘制矩形框显示排序
-int rec2[] = { 200,20,780,80 }; //显示数组
-int rec3[] = { 650,100,750,150 }; //开始按钮
 int array[100]; //要排序的数组
-char tempArray[100]; //用于实时显示排序
 char s[100];
-int length; //数组长度
-int num = 0; //选择的排序的下标
+int num;
 void  ShellSort(int* array, int length) //希尔排序
 {
     int gap = length / 2; //增量
@@ -76,58 +72,50 @@ void HalfInsertSort(int* array, int length) //折半插入排序
         array[high + 1] = key;
     }
 }
-void QuickSort(int* array, int low, int high) //快速排序
+void QuickSort(int* arr, int low, int high) //快速排序
 {
     if (low < high)
     {
         int i = low;
         int j = high;
-        int k = array[low];
+        int k = arr[low];
         while (i < j)
         {
-            while (i < j && array[j] >= k)
+            while (i < j && arr[j] >= k)
             {
                 j--;
             }
             if (i < j)
             {
-                array[i++] = array[j];
+                arr[i++] = arr[j];
             }
-            while (i < j && array[i] < k)
+            while (i < j && arr[i] < k)
             {
                 i++;
             }
             if (i < j)
             {
-                array[j--] = array[i];
+                arr[j--] = arr[i];
             }
         }
-        array[i] = k;
-        QuickSort(array, low, i - 1);//递归
-        QuickSort(array, i + 1, high);
+        arr[i] = k;
+        QuickSort(arr, low, i - 1);//递归
+        QuickSort(arr, i + 1, high);
     }
 }
-void BubbleSort(int* array, int length) //冒泡排序
+void BubbleSort(int* arr, int length) //冒泡排序
 {
     int i, j, temp;
     for (i = 0; i < length - 1; i++)
         for (j = 0; j < length - 1 - i; j++)
-            if (array[j] > array[j + 1]) 
-            {
-                temp = array[j];
-                array[j] = array[j + 1];
-                array[j + 1] = temp;
+            if (arr[j] > arr[j + 1]) {
+                temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
             }
 
 }
-void number(char* s) //显示数组
-{
-    setbkmode(TRANSPARENT);//设置透明文字
-    settextcolor(BLACK);//设置字体颜色
-    outtextxy(180, 45, _T(s));
-    outtextxy(180, 65, _T(tempArray));
-}
-void show(int length,int array[]) //绘制页面
+void show(int length, int array[]) //绘制页面
 {
     cleardevice();
     setlinestyle(PS_SOLID | PS_JOIN_BEVEL, 1.5);
@@ -137,10 +125,10 @@ void show(int length,int array[]) //绘制页面
     settextcolor(BLACK);//设置字体颜色
     settextstyle(20, 0, _T("宋体"));//设置字体大小、样式
     outtextxy(20, 45, "需要排序的数组:");
-    //outtextxy(20, 65, "正在排序:");
+    outtextxy(180, 45, _T(s));
     //显示当前排序情况
     if (num == 1) //num是程序开始时输入的序号
-        outtextxy(20,20, "当前的选择是希尔排序");
+        outtextxy(20, 20, "当前的选择是希尔排序");
     else if (num == 2)
         outtextxy(20, 20, "当前的选择是直接插入排序");
     else if (num == 3)
@@ -148,9 +136,7 @@ void show(int length,int array[]) //绘制页面
     else if (num == 4)
         outtextxy(20, 20, "当前的选择是快速排序");
     else if (num == 5)
-        outtextxy(20, 20, "当前的选择是冒泡排序");    
-
-    number(s); //显示数组
+        outtextxy(20, 20, "当前的选择是冒泡排序");
     //绘制矩形
     for (int i = 0; i < length; i++)
     {
@@ -159,7 +145,7 @@ void show(int length,int array[]) //绘制页面
         fillrectangle(40 + 40 * i, 600 - array[i] * 10, 80 + 40 * i, 580);
     }
     FlushBatchDraw();//开始批量绘制
-    Sleep(50);   
+    Sleep(800);
 }
 void startup() //初始函数
 {
@@ -181,7 +167,7 @@ int toInt(char* ss) //将输入的字符串转为整形数组
     }
     return i;
 }
-void updata(int length,int num) 
+void updata(int length, int num)
 {
     char input = _getch();//获得摁键
     if (kbhit())
@@ -197,7 +183,7 @@ void updata(int length,int num)
             else if (num == 5)
                 BubbleSort(array, length);
             else if (num == 4)
-                QuickSort(array, 0, length-1); //?参数我没搞懂
+                QuickSort(array, 0, length - 1); //?参数我没搞懂
         }
     }
 }
@@ -206,19 +192,19 @@ int main(void)
     printf("请输入要排序的数组:");
     gets_s(s);
     printf("根据输入的数组，推荐的排序方法为：****\n");
-    printf("请选择排序方法:\n1、希尔排序   2、直接插入排序   3、折半插入排序\n4、快速排序   5、冒泡排序\n0、重新输入\n");
+    printf("请选择排序方法:\n1、希尔排序   2、直接插入排序   3、折半插入排序\n4、快速排序   5、冒泡排序\n");
     scanf_s("%d", &num);
-        
-   char ss[50] = "";
-   strcat(ss, s); //复制s字符串到ss
-   length = toInt(ss); //将字符串转为整形数组,并获得数组长度
-   startup();
-   while (1)
-   {
-       show(length, array);
-       updata(length,num); //摁键事件
-   }
-  
+
+    char ss[50] = "";
+    strcat(ss, s); //复制s字符串到ss
+    int length = toInt(ss); //将字符串转为整形数组,并获得数组长度
+    startup();
+    while (1)
+    {
+        show(length, array);
+        updata(length, num); //摁键事件
+    }
+
     _getch();
     closegraph();//关闭绘图界面
     return 0;
