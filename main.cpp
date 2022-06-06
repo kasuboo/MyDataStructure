@@ -1,3 +1,4 @@
+//希尔排序出错、快速排序有点鬼畜、、归并排序没搞懂
 #include<stdio.h>
 #include<stdlib.h>
 #include <graphics.h> 
@@ -10,10 +11,13 @@ int rec1[] = { 20, 100,480,580 }; //绘制矩形框显示排序
 int array[100]; //要排序的数组
 char s[100]; //保存并显示要排序的数组
 char printStr[100]; //排序过程中打印出来的数组
+char printStr2[] = { "排序完成！" };
 int num; //选择的排序序号
 int length; //要排序的数组长度
+int flag; //检查排序是否完成
 void show(int length, int array[]);
 void toChar(int* array);
+int isOK(int* array, int length);
 
 void Merge(int array[], int low, int mid, int high) //归并排序
 {
@@ -75,7 +79,7 @@ void MergeSort(int L[], int n)
     }
 }
 //
-void  ShellSort(int* array, int length) //希尔排序
+/*void  ShellSort(int* array, int length) //希尔排序
 {
     int gap = length / 2; //增量
     while (gap > 1) //当增量不为1时循环执行排序
@@ -101,11 +105,33 @@ void  ShellSort(int* array, int length) //希尔排序
                 }                  
             }
         }
+        show(length, array);
     }
     show(length, array);
+}*/
+void selectSort(int* array, int length) //选择排序
+{
+    flag = 0; //排序未完成标志
+    int i, j;
+    int min = 0; 
+    for (i = 0; i < length - 1; i++)
+    {
+        min = i; //先假设第一个元素最小
+        for (j = i + 1; j < length; j++)
+        {
+            if (array[j] < array[min])
+                min = j; //更新最小值下标
+        }
+        int temp = array[min]; //每次都将最小值移到第一个，下一次从下一个元素开始
+        array[min] = array[i];
+        array[i] = temp;      
+        flag=isOK(array, length);
+        show(length, array);
+    }
 }
 void InSertSort(int* array, int length) //直接插入排序
 {
+    flag = 0; //排序未完成
     for (int i = 1; i < length; i++) //从第二个数开始排
     {
         int temp = array[i];
@@ -116,6 +142,7 @@ void InSertSort(int* array, int length) //直接插入排序
             j--;
         }
         array[j + 1] = temp; //移到正确的位置
+        flag = isOK(array, length);
         show(length, array);
     }
 }
@@ -123,6 +150,7 @@ void HalfInsertSort(int* array, int length) //折半插入排序
 {
     int low, high, mid;
     int key;
+    flag = 0;
     for (int i = 1; i < length; i++)
     {
         key = array[i]; //要查找的值
@@ -141,11 +169,13 @@ void HalfInsertSort(int* array, int length) //折半插入排序
             array[j + 1] = array[j]; //high之后的数据整体后移一位
         }
         array[high + 1] = key;
+        flag = isOK(array, length);
         show(length, array);
     }
 }
 void QuickSort(int* array, int low, int length) //快速排序
 {
+    flag = 0;
     int high = length;
     if (low < high)
     {
@@ -175,10 +205,12 @@ void QuickSort(int* array, int low, int length) //快速排序
         QuickSort(array, low, i - 1);//递归
         QuickSort(array, i + 1, high);
     }  
+    flag = isOK(array, length);
     show(length, array);
 }
 void BubbleSort(int* arrar, int length) //冒泡排序
 {
+    flag = 0;
     int i, j, temp;
     for (i = 0; i < length - 1; i++)
         for (j = 0; j < length - 1 - i; j++)
@@ -187,6 +219,7 @@ void BubbleSort(int* arrar, int length) //冒泡排序
                 temp = array[j];
                 array[j] = arrar[j + 1];
                 array[j + 1] = temp;
+                flag = isOK(array, length);
                 show(length, array);
             }
 
@@ -205,9 +238,14 @@ void show(int length, int array[]) //绘制页面
     outtextxy(20, 70, "正在排序的数组:");
     toChar(array); //数组转字符串，用于输出
     outtextxy(180, 70, _T(printStr));
+    if (flag == 1) //排序完成
+    {
+        settextstyle(25, 0, _T("宋体"));//设置字体大小、样式
+        outtextxy(550, 100, _T(printStr2));
+    }
     //显示当前排序情况
     if (num == 1) //num是程序开始时输入的序号
-        outtextxy(20, 20, "当前的选择是希尔排序");
+        outtextxy(20, 20, "当前的选择是选择排序");
     else if (num == 2)
         outtextxy(20, 20, "当前的选择是直接插入排序");
     else if (num == 3)
@@ -219,7 +257,7 @@ void show(int length, int array[]) //绘制页面
     //绘制矩形
     for (int i = 0; i < length; i++)
     {
-        setfillcolor(LIGHTBLUE);
+        setfillcolor(RGB(215,236,241));
         setlinecolor(BLACK);
         fillrectangle(40 + 40 * i, 600 - array[i] * 10, 80 + 40 * i, 580);
     }
@@ -232,6 +270,18 @@ void startup() //初始函数
     setbkcolor(RGB(250, 250, 250));//背景色
     cleardevice(); //用背景色清空屏幕
     BeginBatchDraw();//开始批量绘制
+}
+int isOK(int* array,int length) //检查排序是否完成
+{
+    for (int i = 0; i < length-1; i++)
+    {
+        for (int j = i + 1; j < length; j++)
+        {
+            if (array[i] > array[j]) //排序未完成
+                return 0;
+        }
+    }
+    return 1; //排序完成
 }
 void toChar(int* array) //将数组转化为字符串
 {
@@ -282,7 +332,7 @@ int main(void)
     printf("请输入要排序的数组:");
     gets_s(s);
     printf("根据输入的数组，推荐的排序方法为：****\n");
-    printf("请选择排序方法:\n1、希尔排序   2、直接插入排序  3、折半插入排序\n4、快速排序   5、冒泡排序      6、归并排序\n");
+    printf("请选择排序方法:\n1、选择排序   2、直接插入排序  3、折半插入排序\n4、快速排序   5、冒泡排序      6、归并排序\n");
     scanf_s("%d", &num);
 
     char ss[50] = "";
@@ -292,7 +342,7 @@ int main(void)
     show(length, array);
     //判断选择的排序
     if (num == 1)
-        ShellSort(array, length); //这个排序好像有问题、、
+        selectSort(array, length); //这个排序好像有问题、、
     else if (num == 2)
         InSertSort(array, length);
     else if (num == 3)
