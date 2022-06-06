@@ -8,9 +8,13 @@
 #define height 600 
 int rec1[] = { 20, 100,480,580 }; //绘制矩形框显示排序
 int array[100]; //要排序的数组
-char s[100];
-int num;
+char s[100]; //保存并显示要排序的数组
+char printStr[100]; //排序过程中打印出来的数组
+int num; //选择的排序序号
+int length; //要排序的数组长度
 void show(int length, int array[]);
+void toChar(int* array);
+
 void Merge(int array[], int low, int mid, int high) //归并排序
 {
     int* T = (int*)malloc(high * sizeof(int));//开辟内存
@@ -97,8 +101,8 @@ void  ShellSort(int* array, int length) //希尔排序
                 }                  
             }
         }
-        
     }
+    show(length, array);
 }
 void InSertSort(int* array, int length) //直接插入排序
 {
@@ -170,8 +174,8 @@ void QuickSort(int* array, int low, int length) //快速排序
         array[i] = k;
         QuickSort(array, low, i - 1);//递归
         QuickSort(array, i + 1, high);
-        show(length, array);
-    }   
+    }  
+    show(length, array);
 }
 void BubbleSort(int* arrar, int length) //冒泡排序
 {
@@ -198,6 +202,9 @@ void show(int length, int array[]) //绘制页面
     settextstyle(20, 0, _T("宋体"));//设置字体大小、样式
     outtextxy(20, 45, "需要排序的数组:");
     outtextxy(180, 45, _T(s));
+    outtextxy(20, 70, "正在排序的数组:");
+    toChar(array); //数组转字符串，用于输出
+    outtextxy(180, 70, _T(printStr));
     //显示当前排序情况
     if (num == 1) //num是程序开始时输入的序号
         outtextxy(20, 20, "当前的选择是希尔排序");
@@ -217,7 +224,7 @@ void show(int length, int array[]) //绘制页面
         fillrectangle(40 + 40 * i, 600 - array[i] * 10, 80 + 40 * i, 580);
     }
     FlushBatchDraw();//开始批量绘制
-    Sleep(1000);
+    Sleep(1200);
 }
 void startup() //初始函数
 {
@@ -225,6 +232,17 @@ void startup() //初始函数
     setbkcolor(RGB(250, 250, 250));//背景色
     cleardevice(); //用背景色清空屏幕
     BeginBatchDraw();//开始批量绘制
+}
+void toChar(int* array) //将数组转化为字符串
+{
+    char t[100] = { '\0' };
+    strcpy(printStr, ""); //清空字符串
+    for (int i = 0; i < length; i++)
+    {
+        sprintf(t, "%d", array[i]);
+        strcat(printStr, t);
+        strcat(printStr, " "); //字符串拼接
+    }
 }
 int toInt(char* ss) //将输入的字符串转为整形数组
 {
@@ -269,7 +287,7 @@ int main(void)
 
     char ss[50] = "";
     strcat(ss, s); //复制s字符串到ss
-    int length = toInt(ss); //将字符串转为整形数组,并获得数组长度
+    length = toInt(ss); //将字符串转为整形数组,并获得数组长度
     startup();
     show(length, array);
     //判断选择的排序
