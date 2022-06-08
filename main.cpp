@@ -1,10 +1,11 @@
-//希尔排序出错、快速排序有点鬼畜、、归并排序没搞懂
 #include<stdio.h>
 #include<stdlib.h>
 #include <graphics.h> 
 #include <conio.h>
 #include<string.h>
 #include<time.h>
+#include <assert.h>
+#include<math.h>
 #define width 800 //窗口大小
 #define height 600 
 int rec1[] = { 20, 100,480,580 }; //绘制矩形框显示排序
@@ -13,107 +14,145 @@ char s[100]; //保存并显示要排序的数组
 char printStr[100]; //排序过程中打印出来的数组
 char printStr2[] = { "排序完成！" };
 int num; //选择的排序序号
+char nums[100];
 int length; //要排序的数组长度
 int flag; //检查排序是否完成
 void show(int length, int array[]);
 void toChar(int* array);
 int isOK(int* array, int length);
 
-void Merge(int array[], int low, int mid, int high) //归并排序
+void Swap(int* x, int* y)
 {
-    int* T = (int*)malloc(high * sizeof(int));//开辟内存
-    int i = low, j = mid + 1, k = 0;
-    while (i <= mid && j <= high)
+    int d=0;
+    d = *x;
+    *x = *y;
+    *y = d;
+}
+void Make(int* data, int numb, int root)
+{
+    assert(data);
+    int parent = root;
+    int child = (parent * 2) + 1;//默认左孩子
+    while (child < numb)
     {
-        //哪边较小就放入前端    
-        if (array[i] <= array[j])
+        if (child + 1 < numb && data[child] < data[child + 1])//两孩子选大值
         {
-            T[k] = array[i];
-            i++; k++;
+            child += 1;
+        }
+        if (data[child] > data[parent])//交换及继续往下
+        {
+            show(length, array);
+            Swap(&data[child], &data[parent]);
+            parent = child;
+            child = (parent * 2) + 1;
         }
         else
+            break;
+    }
+}
+void HeapSort(int* data, int numb) //堆排序
+{
+    flag = 0;
+    for (int i = (numb - 1 - 1) / 2; i >= 0; --i)//从最后一个孩子父亲开始线性减少(下标)，范围线性增大
+    {
+        Make(data, numb, i);
+    }
+    int end = numb - 1;//数据最后一个值
+    while (end > 0)
+    {
+        Swap(&data[0], &data[end]);
+        Make(data, end, 0);//每次执行都将把最后一个值排外(都将有序)
+        end--;
+    }
+    flag = isOK(array, length);
+}
+void MergeSort(int arr[], int len) //归并排序
+{
+    flag = 0;
+    int* a = arr;
+    int* b = (int*)malloc(len * sizeof(int));
+    int seg, start;
+    for (seg = 1; seg < len; seg += seg)
+    {
+        for (start = 0; start < len; start += 2 * seg)
         {
-            T[k] = array[j];
-            j++; k++;
-        }
-    }
-    //将剩下的i到mid或j到high复制到T 
-    while (i <= mid)
-    {
-        T[k] = array[i];
-        i++;
-        k++;
-    }
-    while (j <= high)
-    {
-        T[k] = array[j];
-        j++;
-        k++;
-    }
-    //最后合并结果送回原空间 
-    for (int k = 0, i = low; i <= high; i++, k++)
-    {
-        array[i] = T[k];
-    }
-}
-void MSort(int L[], int len, int n)
-{
-    int i = 1;
-    while (i + 2 * len <= n)
-    {
-        //归并长为len的两个子序列
-        Merge(L, i, i + len - 1, i + 2 * len - 1);
-        i += 2 * len;
-    }
-    if (i + len <= n)
-    {
-        Merge(L, i, i + len - 1, n);
-    }
-}
-void MergeSort(int L[], int n) 
-{
-    //对L做归并排序 
-    for (int len = 1; len <= n; len = len * 2)
-    {
-        MSort(L, len, n);
-    }
-}
-//
-/*void  ShellSort(int* array, int length) //希尔排序
-{
-    int gap = length / 2; //增量
-    while (gap > 1) //当增量不为1时循环执行排序
-    {
-        gap = gap / 2; //每次增量折半
-        for (int i = 0; i < length - gap; i++)
-        {
-            int min = i; //当前组内最小下标
-            int max = min + gap;
-            while (min >= 0) //当最小下标大于等于0时继续执行排序
+            int low = start, mid = min(start + seg, len), high = min(start + 2 * seg, len);
+            int k = low;
+            int start1 = low, end1 = mid;
+            int start2 = mid, end2 = high;
+            while (start1 < end1 && start2 < end2)
             {
-                if (array[max] < array[min]) //组内后一个比前一个小，交换
+                if (a[start1] < a[start2])
                 {
-                    int temp = array[min];
-                    array[min] = array[max];
-                    array[max] = temp;
-                    show(length, array);
+                    b[k] = a[start1];
+                    start1++;
+                    k++;
                 }
-                else //无需交换，执行下一次
+                else
+                {
+                    b[k] = a[start2];
+                    start2++;
+                    k++;
+                }
+            }
+            while (start1 < end1)  //将剩下的start到end复制到b
+            {
+                b[k] = a[start1];
+                start1++;
+                k++;
+            }
+            while (start2 < end2)
+            {
+                b[k] = a[start2];
+                start2++;
+                k++;
+            }
+            show(len, a);
+        }
+        int* temp = a;
+        a = b;
+        b = temp;
+    }
+    if (a != arr)
+    {
+        int i;
+        for (i = 0; i < len; i++)
+            b[i] = a[i];
+        b = a;
+    }
+    free(b);
+    flag = isOK(array, length);
+}
+void ShellSort(int* a, int len) //希尔排序
+{
+    flag = 0;
+    int i, j, k, tmp, gap;  //gap为步长
+    for (gap = len / 2; gap > 0; gap /= 2) //步长初始化为数组长度的一半，每次遍历后步长减半
+    {
+        for (i = 0; i < gap; ++i) //变量i为每次分组的第一个元素下标 
+        {
+            for (j = i + gap; j < len; j += gap) //对步长为gap的元素进行直插排序，当gap为1时，就是直插排序
+            {
+                tmp = a[j];  //备份a[j]的值
+                k = j - gap;  //j初始化为i的前一个元素（与i相差gap长度）
+                while (k >= 0 && a[k] > tmp)
                 {
                     show(length, array);
-                    break;
-                }                  
+                    a[k + gap] = a[k]; //将在a[i]前且比tmp的值大的元素向后移动一位
+                    k -= gap;
+                }
+                a[k + gap] = tmp;
+                show(length, array);
             }
         }
-        show(length, array);
     }
-    show(length, array);
-}*/
+    flag = isOK(array, length);
+}
 void selectSort(int* array, int length) //选择排序
 {
     flag = 0; //排序未完成标志
     int i, j;
-    int min = 0; 
+    int min = 0;
     for (i = 0; i < length - 1; i++)
     {
         min = i; //先假设第一个元素最小
@@ -124,8 +163,8 @@ void selectSort(int* array, int length) //选择排序
         }
         int temp = array[min]; //每次都将最小值移到第一个，下一次从下一个元素开始
         array[min] = array[i];
-        array[i] = temp;      
-        flag=isOK(array, length);
+        array[i] = temp;
+        flag = isOK(array, length);
         show(length, array);
     }
 }
@@ -173,10 +212,10 @@ void HalfInsertSort(int* array, int length) //折半插入排序
         show(length, array);
     }
 }
-void QuickSort(int* array, int low, int length) //快速排序
+void QuickSort(int* array, int low, int lengths) //快速排序
 {
     flag = 0;
-    int high = length;
+    int high = lengths;
     if (low < high)
     {
         int i = low;
@@ -202,9 +241,10 @@ void QuickSort(int* array, int low, int length) //快速排序
             }
         }
         array[i] = k;
-        QuickSort(array, low, i - 1);//递归
+        show(length, array);
+        QuickSort(array, low, i - 1); //递归
         QuickSort(array, i + 1, high);
-    }  
+    }
     flag = isOK(array, length);
     show(length, array);
 }
@@ -214,15 +254,14 @@ void BubbleSort(int* arrar, int length) //冒泡排序
     int i, j, temp;
     for (i = 0; i < length - 1; i++)
         for (j = 0; j < length - 1 - i; j++)
-            if (array[j] > array[j + 1]) 
+            if (array[j] > array[j + 1])
             {
                 temp = array[j];
                 array[j] = arrar[j + 1];
                 array[j + 1] = temp;
-                flag = isOK(array, length);
                 show(length, array);
             }
-
+    flag = isOK(array, length);
 }
 void show(int length, int array[]) //绘制页面
 {
@@ -231,8 +270,8 @@ void show(int length, int array[]) //绘制页面
     setlinecolor(BLACK);
     rectangle(rec1[0], rec1[1], rec1[2], rec1[3]); //绘制排序框
     setbkmode(TRANSPARENT);//设置透明文字
-    settextcolor(BLACK);//设置字体颜色
-    settextstyle(20, 0, _T("宋体"));//设置字体大小、样式
+    settextcolor(BLUE); //设置字体颜色
+    settextstyle(20, 0, _T("楷体"));//设置字体大小、样式
     outtextxy(20, 45, "需要排序的数组:");
     outtextxy(180, 45, _T(s));
     outtextxy(20, 70, "正在排序的数组:");
@@ -240,40 +279,123 @@ void show(int length, int array[]) //绘制页面
     outtextxy(180, 70, _T(printStr));
     if (flag == 1) //排序完成
     {
-        settextstyle(25, 0, _T("宋体"));//设置字体大小、样式
+        IMAGE picture;
+        settextstyle(20, 0, _T("楷体"));//设置字体大小、样式
         outtextxy(550, 100, _T(printStr2));
+        loadimage(&picture, "玉桂狗.jpg", 300, 450);
+        putimage(490, 125, &picture);
     }
+    char t[100] = { '\0' };
+    char t1[100] = { '\0' };
     //显示当前排序情况
     if (num == 1) //num是程序开始时输入的序号
+    {
+        int space = 1;
         outtextxy(20, 20, "当前的选择是选择排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
     else if (num == 2)
-        outtextxy(20, 20, "当前的选择是直接插入排序");
+    {
+        int space = 1;
+        outtextxy(20, 20, "当前的选择是选择排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
     else if (num == 3)
-        outtextxy(20, 20, "当前的选择是折半插入排序");
+    {
+        int space = 1;
+        outtextxy(20, 20, "当前的选择是选择排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
     else if (num == 4)
+    {
+        float space = log2(length);
         outtextxy(20, 20, "当前的选择是快速排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%f", space);
+        outtextxy(610, 70, t);
+        outtextxy(700, 70, ")");
+    }
     else if (num == 5)
-        outtextxy(20, 20, "当前的选择是冒泡排序");
+    {
+        int space = 1;
+        outtextxy(20, 20, "当前的选择是选择排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
+    else if (num == 6)
+    {
+        int space = length;
+        outtextxy(20, 20, "当前的选择是选择排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
+    else if (num == 7)
+    {
+        int space = 1;
+        outtextxy(20, 20, "当前的选择是选择排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
+    else if (num == 8)
+    {
+        int space = length;
+        outtextxy(20, 20, "当前的选择是堆排序");
+        outtextxy(400, 50, "时间复杂度为：O(");
+        outtextxy(650, 50, ")");
+        outtextxy(400, 70, "空间复杂度为：O(");
+        sprintf_s(t, "%d", space);
+        outtextxy(610, 70, t);
+        outtextxy(650, 70, ")");
+    }
     //绘制矩形
     for (int i = 0; i < length; i++)
     {
-        setfillcolor(RGB(215,236,241));
+        setfillcolor(RGB(215, 236, 241));
         setlinecolor(BLACK);
-        fillrectangle(40 + 40 * i, 600 - array[i] * 10, 80 + 40 * i, 580);
+        fillrectangle(40 + 40 * i, 580 - array[i] * 10, 80 + 40 * i, 580);
     }
     FlushBatchDraw();//开始批量绘制
-    Sleep(1200);
+    Sleep(1000);
 }
 void startup() //初始函数
 {
     initgraph(width, height);
-    setbkcolor(RGB(250, 250, 250));//背景色
+    setbkcolor(RGB(250, 250, 250)); //背景色
     cleardevice(); //用背景色清空屏幕
-    BeginBatchDraw();//开始批量绘制
+    BeginBatchDraw(); //开始批量绘制
 }
-int isOK(int* array,int length) //检查排序是否完成
+int isOK(int* array, int length) //检查排序是否完成
 {
-    for (int i = 0; i < length-1; i++)
+    for (int i = 0; i < length - 1; i++)
     {
         for (int j = i + 1; j < length; j++)
         {
@@ -286,7 +408,7 @@ int isOK(int* array,int length) //检查排序是否完成
 void toChar(int* array) //将数组转化为字符串
 {
     char t[100] = { '\0' };
-    strcpy(printStr, ""); //清空字符串
+    strcpy_s(printStr, ""); //清空字符串
     for (int i = 0; i < length; i++)
     {
         sprintf(t, "%d", array[i]);
@@ -307,33 +429,12 @@ int toInt(char* ss) //将输入的字符串转为整形数组
     }
     return i;
 }
-/*void updata(int length, int num)
-{
-    char input = _getch();//获得摁键
-    if (kbhit())
-    {
-        if (input == 'a') //摁下a键开始排序
-        {
-            if (num == 1)
-                ShellSort(array, length);
-            else if (num == 2)
-                InSertSort(array, length);
-            else if (num == 3)
-                HalfInsertSort(array, length);
-            else if (num == 5)
-                BubbleSort(array, length);
-            else if (num == 4)
-                QuickSort(array, 0, length - 1); //?参数我没搞懂
-        }
-    }
-}*/
 int main(void)
 {
-    printf("请输入要排序的数组:");
-    gets_s(s);
-    printf("根据输入的数组，推荐的排序方法为：****\n");
-    printf("请选择排序方法:\n1、选择排序   2、直接插入排序  3、折半插入排序\n4、快速排序   5、冒泡排序      6、归并排序\n");
-    scanf_s("%d", &num);
+    startup();
+    InputBox(s, 100, "请输入要排序的数组:", NULL, NULL, 500, 40, false);
+    InputBox(nums, 100, "请选择排序方法:\n1、选择排序   2、直接插入排序 3、折半插入排序 4、快速排序 \n5、冒泡排序   6、归并排序         7、希尔排序        8、堆排序\n", "排序方式", NULL, 500, 40, false);
+    sscanf_s(nums, "%d", &num);//输入转化成数字
 
     char ss[50] = "";
     strcat(ss, s); //复制s字符串到ss
@@ -342,7 +443,7 @@ int main(void)
     show(length, array);
     //判断选择的排序
     if (num == 1)
-        selectSort(array, length); //这个排序好像有问题、、
+        selectSort(array, length);
     else if (num == 2)
         InSertSort(array, length);
     else if (num == 3)
@@ -351,16 +452,18 @@ int main(void)
         QuickSort(array, 0, length - 1);
     else if (num == 5)
         BubbleSort(array, length);
-    //else if (num == 6)
-        //MergeSort(array, length);
-    
+    else if (num == 6)
+        MergeSort(array, length);
+    else if (num == 7)
+        ShellSort(array, length);
+    else if (num == 8)
+        HeapSort(array, length);
+
     while (1)
     {
         show(length, array);
-        //updata(length, num); //摁键事件
     }
 
-    _getch();
     closegraph();//关闭绘图界面
     return 0;
 }
