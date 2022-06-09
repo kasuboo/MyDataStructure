@@ -7,6 +7,8 @@
 #include<math.h>
 #include<assert.h>
 #include<Windows.h>
+#pragma comment(lib,"Winmm.lib")
+#include<mmsystem.h>
 #define width 800 //窗口大小
 #define height 600 
 int rec1[] = { 20, 100,480,580 }; //绘制矩形框显示排序
@@ -23,11 +25,11 @@ void show(int length, int array[]);
 void toChar(int* array);
 int isOK(int* array, int length);
 //微秒级程序运行
-double run_time; //运行时间
+double run_time;
 _LARGE_INTEGER TIME_start;
 _LARGE_INTEGER TIME_end;
 double dqFreq;
-LARGE_INTEGER f; //获得机器内部计时器的时钟频率
+LARGE_INTEGER f;
 
 void MergeSort(int arr[], int len)
 {
@@ -91,17 +93,20 @@ void ShellSort(int* a, int len)
     flag = 0;
     int i, j, k, tmp, gap;  // gap 为步长
     for (gap = len / 2; gap > 0; gap /= 2)
-    {  // 步长初始化为数组长度的一半，每次遍历后步长减半
+    {  
+        // 步长初始化为数组长度的一半，每次遍历后步长减半
         for (i = 0; i < gap; ++i)
-        { // 变量 i 为每次分组的第一个元素下标 
+        { 
+            // 变量 i 为每次分组的第一个元素下标 
             for (j = i + gap; j < len; j += gap)
-            { //对步长为gap的元素进行直插排序，当gap为1时，就是直插排序
-                tmp = a[j];  // 备份a[j]的值
-                k = j - gap;  // j初始化为i的前一个元素（与i相差gap长度）
+            { 
+                //对步长为gap的元素进行直插排序，当gap为1时，就是直插排序
+                tmp = a[j];  //储存a[j]的值
+                k = j - gap;  //储存i的值
                 while (k >= 0 && a[k] > tmp)
                 {
                     show(length, array);
-                    a[k + gap] = a[k]; // 将在a[i]前且比tmp的值大的元素向后移动一位
+                    a[k + gap] = a[k]; //组内交换
                     k -= gap;
                 }
                 a[k + gap] = tmp;
@@ -122,9 +127,9 @@ void selectSort(int* array, int length) //选择排序
         for (j = i + 1; j < length; j++)
         {
             if (array[j] < array[min])
-                min = j; //更新最小值下标
+                min = j; //如果有更小的，更新最小值下标
         }
-        int temp = array[min]; //每次都将最小值移到第一个，下一次从下一个元素开始
+        int temp = array[min]; //每次都将最小值移到未排序序列的最前面，下一次从下一个元素开始
         array[min] = array[i];
         array[i] = temp;
         flag = isOK(array, length);
@@ -136,7 +141,7 @@ void InSertSort(int* array, int length) //直接插入排序
     flag = 0; //排序未完成
     for (int i = 1; i < length; i++) //从第二个数开始排
     {
-        int temp = array[i];
+        int temp = array[i]; //哨兵,保存哨兵数据
         int j = i - 1; //前i-1个数都是有序序列，记录下标
         while (j >= 0 && array[j] > temp)
         {
@@ -155,7 +160,7 @@ void HalfInsertSort(int* array, int length) //折半插入排序
     flag = 0;
     for (int i = 1; i < length; i++)
     {
-        key = array[i]; //要查找的值
+        key = array[i]; //要插入的值
         low = 0;
         high = i - 1;
         while (low <= high) //折半查找
@@ -179,22 +184,22 @@ void QuickSort(int* array, int low, int lengths) //快速排序
 {
     flag = 0;
     int high = lengths;
-    if (low < high)
+    if (low < high) //左右哨兵还没相遇
     {
         int i = low;
-        int j = high;
-        int k = array[low];
-        while (i < j)
+        int j = high; //每次都必须j先向左移动,寻找比key小的数
+        int key = array[low]; //当前要处理的元素，每次都设置为第一个
+        while (i < j) //当low和high未相遇时
         {
-            while (i < j && array[j] >= k)
+            while (i < j && array[j] >= key) //j从右往左寻找比key小的数
             {
                 j--;
             }
             if (i < j)
             {
-                array[i++] = array[j];
+                array[i++] = array[j]; //比6小的值赋到low+1位置
             }
-            while (i < j && array[i] < k)
+            while (i < j && array[i] < key) //i从左往右寻找比key大的数
             {
                 i++;
             }
@@ -203,10 +208,11 @@ void QuickSort(int* array, int low, int lengths) //快速排序
                 array[j--] = array[i];
             }
         }
-        array[i] = k;
+        //至此，左边的值都比key小，右边的值都比key大
+        array[i] = key;
         show(length, array);
-        QuickSort(array, low, i - 1); //递归
-        QuickSort(array, i + 1, high);
+        QuickSort(array, low, i - 1); //处理左边序列
+        QuickSort(array, i + 1, high); //处理右边序列
     }
     flag = isOK(array, length);
     show(length, array);
@@ -215,7 +221,7 @@ void BubbleSort(int* arrar, int length) //冒泡排序
 {
     flag = 0;
     int i, j, temp;
-    for (i = 0; i < length - 1; i++)
+    for (i = 0; i < length - 1; i++) //每次从第一个开始，从左往右比较，大的就交换，直到遇到比当前元素更大的
         for (j = 0; j < length - 1 - i; j++)
             if (array[j] > array[j + 1])
             {
@@ -236,7 +242,7 @@ void Swap(int* x, int* y)
 }
 void Make(int* data, int numb, int root)
 {
-    assert(data);
+    assert(data); //如果找不到该数组，发生错误,函数终止运行
     int parent = root;
     int child = (parent * 2) + 1;//默认左孩子
     while (child < numb)
@@ -247,7 +253,7 @@ void Make(int* data, int numb, int root)
         }
         if (data[child] > data[parent])//交换及继续往下
         {
-            Swap(&data[child], &data[parent]);
+            Swap(&data[child], &data[parent]); //父结点的值和孩子的值交换
             parent = child;
             child = (parent * 2) + 1;
         }
@@ -262,10 +268,10 @@ void HeapSort(int* data, int numb) //堆排序
     {
         Make(data, numb, i);
     }
-    int end = numb - 1;//数据最后一个值
+    int end = numb - 1;//数据最后一个值的下标
     while (end > 0)
     {
-        Swap(&data[0], &data[end]);
+        Swap(&data[0], &data[end]); //父结点的值和最后一个值交换
         Make(data, end, 0);//每次执行都将把最后一个值排外(都将有序)
         end--;
         show(numb, data);
@@ -525,18 +531,18 @@ int toInt(char* ss) //将输入的字符串转为整形数组
     }
     return i;
 }
-int test(int nums[], int mode) { 
+int test(int nums[], int mode) { //检查排序方法选择是否结束，即排序数组是否全部置0，留下被选择的最佳方式
     int d = 0;
-    if (mode == 1) {
+    if (mode == 1) { //mode为1，选择排序方法阶段
         int count = 0;
         for (int i = 0; i < 8; i++) {
             if (nums[i] != 0)
                 count++;
         }
-        if (count == 1)
+        if (count == 1) //当只剩下一种排序的时候，比较结束
             d = 1;
     }
-    if (mode == 2) {
+    if (mode == 2) { //mode为2，确定比较结果最后选择的排序方法
         for (int i = 0; i < 8; i++) {
             if (sortsNums[i] != 0)
                 d = sortsNums[i];
@@ -546,21 +552,21 @@ int test(int nums[], int mode) {
 }
 int ATimeComplex(int a) { //时间复杂度计算
     int d = 10000;
-    if (a == 1)
-        d = length * length;
-    else if (a == 2)
-        d = (length + 2) * (length - 1) / 4 + (length + 4) * (length - 1) / 4;
-    else if (a == 3)
-        d = (length + 4) * (length - 1) / 4 + length * log2(length) / 2;
-    else if (a == 4)
+    if (a == 1) //选择排序
+        d = length * length; //n^2
+    else if (a == 2) //直接插入排序
+        d = (length + 2) * (length - 1) / 4 + (length + 4) * (length - 1) / 4; //(n+2)*(n-1)/4 + (n+4)*(n-1)/4
+    else if (a == 3) //折半插入排序
+        d = (length + 4) * (length - 1) / 4 + length * log2(length) / 2; 
+    else if (a == 4) //快速排序
         d = length * log2(length);
-    else if (a == 5)
+    else if (a == 5) //冒泡排序
         d = length * length / 4 + length * length * 3 / 4;
-    else if (a == 6)
+    else if (a == 6) //归并排序
         d = length + length * log2(length);
-    else if (a == 7)
+    else if (a == 7) //希尔排序
         d = pow(length, 1.3);
-    else if (a == 8)
+    else if (a == 8) //堆排序
         d = 2 * length * log2(length);
     return d;
 }
@@ -589,12 +595,12 @@ void ATimeCompare() { //时间复杂性
     int* p = &sortsNums[0];
     if (done == 0) {
         for (int i = 1; i < 8; i++) {
-            if (ATimeComplex(sortsNums[i]) < min && sortsNums[i] != 0) {
+            if (ATimeComplex(sortsNums[i]) < min && sortsNums[i] != 0) { //若出现时间复杂度更小的排序方法，且没有淘汰，交换
                 *p = 0;
                 min = ATimeComplex(sortsNums[i]);
                 p = &sortsNums[i];
             }
-            else if (ATimeComplex(nums[i]) > min && sortsNums[i] != 0) {
+            else if (ATimeComplex(nums[i]) > min && sortsNums[i] != 0) { //如果出现时间复杂度更大的排序方法，淘汰该方法
                 sortsNums[i] = 0;  //已经比较过，淘汰
             }
         }
@@ -602,37 +608,37 @@ void ATimeCompare() { //时间复杂性
     }
 }
 void SpatialCompare() { //空间复杂性
-    int min = SpatialComplex(sortsNums[0]);
+    int min = SpatialComplex(sortsNums[0]); //先假设第一个排序方法的空间复杂度最小
     int* p = &sortsNums[0];
     if (done == 0) {
         for (int i = 1; i < 8; i++) {
-            if (SpatialComplex(sortsNums[i]) < min && sortsNums[i] != 0) {
+            if (SpatialComplex(sortsNums[i]) < min && sortsNums[i] != 0) { //若出现空间复杂度更小的排序方法，且没有淘汰，交换
                 *p = 0;
                 min = SpatialComplex(sortsNums[i]);
                 p = &sortsNums[i];
             }
-            else if (SpatialComplex(sortsNums[i]) > min && sortsNums[i] != 0) {
+            else if (SpatialComplex(sortsNums[i]) > min && sortsNums[i] != 0) { //如果出现空间复杂度更大的排序方法，淘汰该方法
                 sortsNums[i] = 0;
             }
         }
-        done = test(sortsNums, 1);
+        done = test(sortsNums, 1); //检查比较是否完成
     }
 }
 void Stability(int whether) { //稳定性
     if (whether == 0) {
         for (int i = 0; i < 8; i++) {
-            if (i == 0 || i == 3 || i == 6) //序号为1、4、7的排序稳定性为零，淘汰
+            if (i == 0 || i == 3 || i == 6) //序号为1、4、7的排序不稳定，直接淘汰
                 sortsNums[i] = 0;
         }
     }
-    whether = test(sortsNums, 1);
+    whether = test(sortsNums, 1); //检查比较是否完成,whether即为done
 }
 void JudgingBestSort(int arr[], int len, int* num) { //判断最好的算法，根据三种性能的先后顺序挨个淘汰
     if (*num == 123) {
         SpatialCompare();
         ATimeCompare();
         Stability(done);
-        *num = test(arr, 2);
+        *num = test(arr, 2); //得到最后选择的排序方法的序号
     }
     else if (*num == 132) {
         SpatialCompare();
@@ -670,6 +676,9 @@ int main(void)
     startup();
     InputBox(s, 100, "请输入要排序的数组:", NULL, NULL, 500, 40, false); //接受输入的字符串，字符串长度，对话框信息，标题，输入框默认值，width，height，是否有取消键
     InputBox(nums, 100, "请选择排序需求（无需空格，输入三个数字顺序）:\n1、空间复杂度优先 2、平均时间复杂度优先 3、稳定性优先\n", "排序模式选择", NULL, 500, 40, false);
+    mciSendString("open music.mp3 alias bkmusic", NULL, 0, NULL); //打开音乐文件
+    mciSendString("play bkmusic repeat", NULL, 0, NULL);
+
     char ss[50] = "";
     strcat_s(ss, s); //复制s字符串到ss
     length = toInt(ss); //将字符串转为整形数组,并获得数组长度
@@ -678,43 +687,42 @@ int main(void)
     startup();
     show(length, array);
     //判断选择的排序
-    if (num == 1) {
+    if (num == 1) { //选择排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         selectSort(array, length);
-        //Sleep(10);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 2) {
+    else if (num == 2) { //直接插入排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         InSertSort(array, length);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 3) {
+    else if (num == 3) { //折半插入排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         HalfInsertSort(array, length);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 4) {
+    else if (num == 4) { //快速排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         QuickSort(array, 0, length - 1);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 5) {
+    else if (num == 5) { //冒泡排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         BubbleSort(array, length);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 6) {
+    else if (num == 6) { //归并排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         MergeSort(array, length);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 7) {
+    else if (num == 7) { //希尔排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         ShellSort(array, length);
         QueryPerformanceCounter(&TIME_end); //计时结束
     }
-    else if (num == 8) {
+    else if (num == 8) { //堆排序
         QueryPerformanceCounter(&TIME_start); //计时开始
         HeapSort(array, length);
         QueryPerformanceCounter(&TIME_end); //计时结束
@@ -723,6 +731,9 @@ int main(void)
     {
         show(length, array);
     }
+
+    mciSendString("stop bkmusic", NULL, 0, NULL);	//停止播放音乐
+    mciSendString("close bkmusic", NULL, 0, NULL);	//关闭音乐
     closegraph();//关闭绘图界面
     return 0;
 }
